@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer components {
+    .underline-input {
+        border: none;
+        border-bottom: 1.5px solid theme('colors.brand.border');
+        border-radius: 0;
+        background: transparent;
+        padding-left: 0;
+        padding-right: 0;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .underline-input:focus {
+        outline: none;
+        border-bottom-color: theme('colors.brand.blue');
+        box-shadow: 0 1px 0 0 theme('colors.brand.blue');
+    }
+
+    .underline-input.error {
+        border-bottom-color: theme('colors.brand.orange');
+        box-shadow: 0 1px 0 0 theme('colors.brand.orange');
+    }
+}
