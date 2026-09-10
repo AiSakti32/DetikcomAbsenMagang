@@ -14,6 +14,9 @@ class Attendance extends Model
         'check_in',
         'check_out',
         'status',
+        'latitude',
+        'longitude',
+        'distance_meters',
     ];
 
     protected function casts(): array

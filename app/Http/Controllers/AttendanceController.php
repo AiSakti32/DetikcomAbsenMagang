@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Services\GeofenceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
-    public function checkIn(Request $request): RedirectResponse
+    public function checkIn(Request $request, GeofenceService $geofence): RedirectResponse
     {
         $user = $request->user();
         $now = now();
@@ -17,10 +18,30 @@ class AttendanceController extends Controller
             return back()->with('error', 'Anda sudah check-in hari ini.');
         }
 
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric'],
+            'longitude' => ['required', 'numeric'],
+        ]);
+
+        $radius = (int) config('absensi.radius_meters');
+        $distance = $geofence->distanceMeters(
+            (float) $validated['latitude'],
+            (float) $validated['longitude'],
+            (float) config('absensi.office_latitude'),
+            (float) config('absensi.office_longitude'),
+        );
+
+        if ($distance > $radius) {
+            return back()->with('error', "Kamu berada di luar area yang diizinkan untuk absen (jarak: {$distance}m, maksimal {$radius}m).");
+        }
+
         $user->attendances()->create([
             'date' => $now->toDateString(),
             'check_in' => $now->format('H:i:s'),
             'status' => $now->format('H:i') > config('absensi.batas_checkin') ? 'telat' : 'hadir',
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'distance_meters' => $distance,
         ]);
 
         return back()->with('success', 'Check-in berhasil.');
