@@ -23,4 +23,17 @@ return [
     */
     'mulai_checkout' => '16:00',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Geofencing Lokasi Kantor
+    |--------------------------------------------------------------------------
+    |
+    | Titik koordinat kantor dan radius toleransi (dalam meter) yang dipakai
+    | untuk memvalidasi lokasi peserta saat check-in.
+    |
+    */
+    'office_latitude' => env('OFFICE_LATITUDE', -7.5663),
+    'office_longitude' => env('OFFICE_LONGITUDE', 110.8281),
+    'radius_meters' => env('OFFICE_RADIUS_METERS', 100),
+
 ];

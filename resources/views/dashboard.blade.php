@@ -81,14 +81,25 @@
                     Absensi hari ini sudah selesai
                 </div>
             @else
+                @unless ($today)
+                    <div id="geo-status" class="mt-6 flex items-center gap-2 font-body text-sm text-white/70">
+                        <svg id="geo-status-spinner" class="w-4 h-4 animate-spin text-white/70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"></path>
+                        </svg>
+                        <span id="geo-status-text">Mendeteksi lokasi...</span>
+                    </div>
+                @endunless
                 <div class="mt-6 flex flex-wrap gap-3">
-                    <form method="POST" action="{{ route('attendance.check-in') }}">
+                    <form method="POST" action="{{ route('attendance.check-in') }}" id="checkin-form">
                         @csrf
-                        <button type="submit" {{ $today ? 'disabled' : '' }}
+                        <input type="hidden" name="latitude" id="checkin-latitude">
+                        <input type="hidden" name="longitude" id="checkin-longitude">
+                        <button type="submit" id="checkin-btn" disabled
                             class="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-body font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white
                                 {{ $today
                                     ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                                    : 'bg-brand-orange text-white hover:bg-brand-orange/90' }}">
+                                    : 'bg-brand-orange text-white hover:bg-brand-orange/90 disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
                             </svg>
@@ -214,6 +225,56 @@
 
         updateLiveClock();
         setInterval(updateLiveClock, 1000);
+    </script>
+
+    <script>
+        (function () {
+            const statusEl = document.getElementById('geo-status');
+            const statusText = document.getElementById('geo-status-text');
+            const statusSpinner = document.getElementById('geo-status-spinner');
+            const checkinBtn = document.getElementById('checkin-btn');
+            const latInput = document.getElementById('checkin-latitude');
+            const lngInput = document.getElementById('checkin-longitude');
+
+            // Kalau elemen-elemen ini tidak ada (mis. peserta sudah check-in
+            // hari ini), tidak perlu jalankan deteksi lokasi.
+            if (!statusEl || !checkinBtn || !latInput || !lngInput) {
+                return;
+            }
+
+            function showMessage(message, { spinner = false, tone = 'muted' } = {}) {
+                statusText.textContent = message;
+                statusSpinner.hidden = !spinner;
+                statusText.classList.remove('text-white/70', 'text-emerald-300', 'text-amber-300');
+                statusText.classList.add(
+                    tone === 'success' ? 'text-emerald-300' : tone === 'warn' ? 'text-amber-300' : 'text-white/70'
+                );
+            }
+
+            function onSuccess(position) {
+                latInput.value = position.coords.latitude;
+                lngInput.value = position.coords.longitude;
+                checkinBtn.disabled = false;
+                showMessage('Lokasi terdeteksi ✓', { spinner: false, tone: 'success' });
+            }
+
+            function onError() {
+                checkinBtn.disabled = true;
+                showMessage('Aktifkan izin lokasi di browser untuk melakukan check-in', { spinner: false, tone: 'warn' });
+            }
+
+            if (!('geolocation' in navigator)) {
+                onError();
+                return;
+            }
+
+            showMessage('Mendeteksi lokasi...', { spinner: true });
+            navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+            });
+        })();
     </script>
 </body>
 </html>

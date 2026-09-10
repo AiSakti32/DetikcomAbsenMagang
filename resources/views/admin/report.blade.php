@@ -150,6 +150,7 @@
                         <th scope="col" class="py-3.5 px-6">Check In</th>
                         <th scope="col" class="py-3.5 px-6">Check Out</th>
                         <th scope="col" class="py-3.5 px-6">Status</th>
+                        <th scope="col" class="py-3.5 px-6">Lokasi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-brand-border text-sm">
@@ -191,10 +192,27 @@
                                     {{ $statusStyle[2] }}
                                 </span>
                             </td>
+                            <td class="py-4 px-6">
+                                @if ($row->distance_meters !== null)
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-brand-blue border border-blue-200 whitespace-nowrap">
+                                            📍 {{ $row->distance_meters }}m dari kantor
+                                        </span>
+                                        @if ($row->latitude !== null && $row->longitude !== null)
+                                            <a href="https://www.google.com/maps?q={{ $row->latitude }},{{ $row->longitude }}" target="_blank" rel="noopener noreferrer"
+                                                class="text-[11px] font-medium text-brand-blue hover:underline whitespace-nowrap">
+                                                Lihat di peta
+                                            </a>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-brand-muted">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-10 text-center text-sm text-brand-muted">Tidak ada data absensi untuk filter ini.</td>
+                            <td colspan="6" class="py-10 text-center text-sm text-brand-muted">Tidak ada data absensi untuk filter ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
